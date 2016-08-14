@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Diagnostics;
+using OpenHardwareMonitor.Hardware.Nvidia;
 
 public class Test : MonoBehaviour {
 
@@ -17,6 +18,7 @@ public class Test : MonoBehaviour {
     float timeStep = 1.0f;
     CpuUsageCs.CpuUsage cpuUsage = new CpuUsageCs.CpuUsage();
     short m_currentCPUPercentage = 0;
+	short m_currentGPUPercentage = 0;
 
     // Use this for initialization
     void Start () {
@@ -54,6 +56,15 @@ public class Test : MonoBehaviour {
             samples.Add( pc[i].NextSample() );
             m_values.Add(0.0);
         }
+
+
+        if ( NVAPI.IsAvailable )
+        {
+            UnityEngine.Debug.Log("woop!");
+        } else
+		{
+            UnityEngine.Debug.Log("fail!");
+		}
 
         System.Threading.Thread.Sleep( 1000 );
     }
@@ -94,8 +105,61 @@ public class Test : MonoBehaviour {
 
         m_currentCPUPercentage = cpuUsage.GetUsage();
 
+
+		UpdateGPUInfo();
         // System.Threading.Thread.Sleep(500);
     }
+
+	void UpdateGPUInfo()
+	{
+		NvPhysicalGpuHandle[] handles = new NvPhysicalGpuHandle[NVAPI.MAX_PHYSICAL_GPUS];
+		int count;
+		if (NVAPI.NvAPI_EnumPhysicalGPUs == null) 
+		{
+			UnityEngine.Debug.Log("Error: NvAPI_EnumPhysicalGPUs not available");
+			return;
+		} 
+		else
+		{        
+			NvStatus status = NVAPI.NvAPI_EnumPhysicalGPUs(handles, out count);
+			if (status == NvStatus.OK) 
+			{
+				//UnityEngine.Debug.Log("GPU Count: " + count);
+
+				for ( int i = 0; i < count; i++ )
+				{ 
+					NvPStates states = new NvPStates();
+					states.Version = NVAPI.GPU_PSTATES_VER;
+					states.PStates = new NvPState[NVAPI.MAX_PSTATES_PER_GPU];
+					if (NVAPI.NvAPI_GPU_GetPStates != null &&
+					NVAPI.NvAPI_GPU_GetPStates(handles[i], ref states) == NvStatus.OK) 
+					{
+
+						//GPU Core load perc
+						m_currentGPUPercentage = (short)states.PStates[ 0 ].Percentage;
+					} 
+					else 
+					{
+						NvUsages usages = new NvUsages();
+						usages.Version = NVAPI.GPU_USAGES_VER;
+						usages.Usage = new uint[NVAPI.MAX_USAGES_PER_GPU];
+						if (NVAPI.NvAPI_GPU_GetUsages != null &&
+						NVAPI.NvAPI_GPU_GetUsages(handles[i], ref usages) == NvStatus.OK) 
+						{
+							//GPU Core load perc
+							m_currentGPUPercentage = (short)usages.Usage[2];
+						}
+					}
+				}
+
+
+			}
+			else 
+			{ 
+				UnityEngine.Debug.Log(" !OK - Status: " + status);
+			}
+		}
+	}
 
     void DrawGUI( Rect rect )
     {
@@ -124,8 +188,10 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), SystemInfo.graphicsDeviceName );
         yOffset += 20.0f;
         GUI.Label( new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "VRAM " + SystemInfo.graphicsMemorySize.ToString() + " MB" );
-        yOffset += 40.0f;
+        yOffset += 20.0f;
 
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GPU Load: " + m_currentGPUPercentage + "%" );
+        yOffset += 40.0f;
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "CPU Cores : " + SystemInfo.processorCount.ToString());
         yOffset += 20.0f;
