@@ -17,7 +17,7 @@ public class Test : MonoBehaviour {
     float lastUpdate = 0.0f;
     float timeStep = 1.0f;
     CpuUsageCs.CpuUsage cpuUsage = new CpuUsageCs.CpuUsage();
-    short m_currentCPUPercentage = 0;
+    public short m_currentCPUPercentage = 0;
 	short m_currentGPUPercentage = 0;
 
 	long m_lastGCCount = long.MaxValue;
@@ -223,7 +223,9 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GPU Load: " + m_currentGPUPercentage + "%" );
         yOffset += 40.0f;
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 400.0f, 25.0f), "CPU Type : " + SystemInfo.processorType );
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 400.0f, 25.0f), "CPU Type : " + GetCPUTitle() );
+        
+        //GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 400.0f, 25.0f), "CPU Type : " + SystemInfo.processorType.Replace( "(TM)", "" ).Replace( "(R)", "" ) );
         yOffset += 20.0f;
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "CPU Cores : " + SystemInfo.processorCount.ToString());
@@ -263,5 +265,12 @@ public class Test : MonoBehaviour {
         double timeInterval = newSample.TimeStamp100nSec - oldSample.TimeStamp100nSec;
         if (timeInterval != 0) return 100 * (1 - (difference / timeInterval));
         return 0;
+    }
+
+    string GetCPUTitle()
+    {
+        string[] tokens = SystemInfo.processorType.Replace("(TM)", "").Replace("(R)", "").Split(new char[] { '@' });
+
+        return tokens[0];
     }
 }
