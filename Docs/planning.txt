@@ -1,0 +1,14 @@
+GPUInfo
+
+CPUInfo
+
+MemInfo
+
+DiskInfo?
+
+NetInfo?
+
+GPUInfo gpuInfo = PerformanceTools.Instance.GetGPUInfo();
+
+PerformanceTools.Instance.EnableHUD = true;
+
