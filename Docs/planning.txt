@@ -4,6 +4,8 @@ CPUInfo
 
 MemInfo
 
+*Detect GC by looking at mono mem used.. on decrease, GC was active...
+
 DiskInfo?
 
 NetInfo?

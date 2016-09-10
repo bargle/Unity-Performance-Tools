@@ -20,6 +20,10 @@ public class Test : MonoBehaviour {
     short m_currentCPUPercentage = 0;
 	short m_currentGPUPercentage = 0;
 
+	long m_lastGCCount = long.MaxValue;
+	int m_lastGCFrame = 0;
+	int m_gcIterations = 0;
+
     // Use this for initialization
     void Start () {
         Application.targetFrameRate = 0;
@@ -71,6 +75,15 @@ public class Test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		//GC updates
+		long currGCCount = System.GC.GetTotalMemory( false );
+		if ( currGCCount < m_lastGCCount )
+		{
+			m_lastGCFrame = Time.frameCount;
+			m_gcIterations++;
+		}
+		m_lastGCCount = currGCCount;
 
         if ( ( Time.realtimeSinceStartup - lastUpdate ) < updateInterval )
         {
@@ -180,6 +193,23 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Frame : " + Time.frameCount.ToString() );
         yOffset += 20.0f;
 
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Sys Mem : " + SystemInfo.systemMemorySize.ToString() );
+        yOffset += 20.0f;
+	
+
+		long mb = System.GC.GetTotalMemory( false ) / (1024);
+
+		float fmb = (float)mb / 1000.0f;
+
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Alloc : " + fmb.ToString("N2") + "MB" );
+		yOffset += 20.0f;
+
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Frame : " + m_lastGCFrame.ToString() );
+        yOffset += 20.0f;
+
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Iter : " + m_gcIterations.ToString() );
+        yOffset += 40.0f;
+
         //Vid Info
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), SystemInfo.graphicsDeviceVersion.ToString() ) ;
         yOffset += 20.0f;
@@ -193,6 +223,9 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GPU Load: " + m_currentGPUPercentage + "%" );
         yOffset += 40.0f;
 
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 400.0f, 25.0f), "CPU Type : " + SystemInfo.processorType );
+        yOffset += 20.0f;
+
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "CPU Cores : " + SystemInfo.processorCount.ToString());
         yOffset += 20.0f;
 
@@ -202,11 +235,13 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Total CPU Time: " + m_currentCPUPercentage + "%" );
         yOffset += 20.0f;
 
+		/*
         for (int i = 0; i < m_values.Count; i++)
         {
             GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "[CORE" + i + "] " + m_values[i].ToString("0.0000") + " (" + ( 1.0f / (m_values[i] * 0.01f) ).ToString("0.00") + ")");
             yOffset += 20.0f;
         }
+		*/
 
         /*
         for( int i = 0; i < pc.Count; i++ )
@@ -218,7 +253,7 @@ public class Test : MonoBehaviour {
 
     void OnGUI()
     {
-        float width = 250.0f;
+        float width = 450.0f;
         DrawGUI(new Rect( Screen.width - width, 0.0f, width, Screen.height));
     }
 
@@ -229,5 +264,4 @@ public class Test : MonoBehaviour {
         if (timeInterval != 0) return 100 * (1 - (difference / timeInterval));
         return 0;
     }
-
 }
