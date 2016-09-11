@@ -255,7 +255,7 @@ public class Test : MonoBehaviour {
 
     void OnGUI()
     {
-        float width = 450.0f;
+        float width = 250.0f;
         DrawGUI(new Rect( Screen.width - width, 0.0f, width, Screen.height));
     }
 
