@@ -8,9 +8,6 @@ using System.Text;
 using OpenHardwareMonitor.Hardware.Nvidia;
 
 public class Test : MonoBehaviour {
-
-    public int m_calcs = 0;
-
     public Text m_myText;
 
     float updateInterval = 1.0f;
@@ -24,7 +21,12 @@ public class Test : MonoBehaviour {
 	int m_lastGCFrame = 0;
 	int m_gcIterations = 0;
     public bool m_gcIncrementedThisFrame = false;
-    string m_driverVersion = string.Empty;
+
+    float m_minFPS = float.MaxValue;
+    float m_avgFPS = 0.0f;
+    float m_fpsSamplesAcc = 0.0f;
+    ulong m_fpsSampleCount = 0;
+    float m_maxFPS = 0.0f;
 
     // Use this for initialization
     void Start () {
@@ -47,12 +49,6 @@ public class Test : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-        for ( int i = 0; i < m_calcs; i++ )
-        {
-            Mathf.Sqrt(Time.realtimeSinceStartup);
-        }
-
         //GC updates
         long currGCCount = System.GC.GetTotalMemory( false );
 		if ( currGCCount < m_lastGCCount )
@@ -66,21 +62,44 @@ public class Test : MonoBehaviour {
         }
 		m_lastGCCount = currGCCount;
 
-        if ( ( Time.realtimeSinceStartup - lastUpdate ) < updateInterval )
-        {
-           // System.Threading.Thread.Sleep( 500 );
-            return;
-        }
+
 
         timeStep = Time.unscaledDeltaTime;
 
+        float fps = 1.0f / timeStep;
+        if ( fps > m_maxFPS )
+        {
+            m_maxFPS = fps;
+        }
+        if ( fps < m_minFPS )
+        {
+            m_minFPS = fps;
+        }
+
+        m_fpsSamplesAcc += fps;
+        m_fpsSampleCount++;
+        m_avgFPS = m_fpsSamplesAcc / (float)m_fpsSampleCount;
+
+        //UnityEngine.Debug.Log( "FPS COUNT: " + m_fpsSampleCount  + " - MOD: " + (m_fpsSampleCount % 60) );
+
+        if ( ( m_fpsSampleCount % 300 ) == 0 )
+        {
+            m_fpsSamplesAcc = fps;
+            m_fpsSampleCount = 1;
+        }
+
+        if ((Time.realtimeSinceStartup - lastUpdate) < updateInterval)
+        {
+            return;
+        }
+
         lastUpdate = Time.realtimeSinceStartup;
+
+
 
         m_currentCPUPercentage = cpuUsage.GetUsage();
 
-
 		UpdateGPUInfo();
-        // System.Threading.Thread.Sleep(500);
     }
 
 	void UpdateGPUInfo()
@@ -151,6 +170,10 @@ public class Test : MonoBehaviour {
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), (timeStep * 100.0f).ToString("0.00") + "ms");
         yOffset += 20.0f;
+
+        //one off
+        GUI.Label(new Rect(rect.x * 0.25f + 5.0f, rect.y + 5.0f, 400.0f, 25.0f), "[MIN : " + m_minFPS.ToString("N2") + "] - [AVG : " + m_avgFPS.ToString("N2") + "] - [MAX : " + m_maxFPS.ToString("N2") + "]");
+        
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Frame : " + Time.frameCount.ToString() );
         yOffset += 50.0f;
