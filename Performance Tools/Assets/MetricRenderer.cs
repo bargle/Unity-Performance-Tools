@@ -27,31 +27,6 @@ public class MetricRenderer : MonoBehaviour {
         m_valueBuffer.Add( Mathf.Clamp( 1.0f / Time.unscaledDeltaTime, 0.0f, 50.0f ) );
     }
 
-    void DrawBox( Rect rect, float pixelWidth, float pixelHeight, Color color )
-    {
-        float xOffset = rect.x;
-        float yOffset = rect.y;
-
-        GL.Color(color);
-        GL.Vertex3(xOffset,     yOffset,                0);
-        GL.Vertex3(xOffset,     rect.yMax,    0);
-        GL.Vertex3(rect.xMax,   rect.yMax,    0);
-        GL.Vertex3(rect.xMax,   yOffset,                0);
-    }
-
-    void DrawLine( Rect rect, float pixelWidth, float pixelHeight, float height, Color color )
-    {
-        float xOffset = rect.x;
-
-        float yOffset = rect.y;
-
-        GL.Color( color );
-        GL.Vertex3(xOffset + 0, yOffset + 0, 0);
-        GL.Vertex3(xOffset + pixelWidth, yOffset + 0, 0);
-        GL.Vertex3(xOffset + pixelWidth, yOffset + height, 0);
-        GL.Vertex3(xOffset + 0f, yOffset + height, 0);
-    }
-
     void DrawBackgroundBox()
     {
 
@@ -69,11 +44,11 @@ public class MetricRenderer : MonoBehaviour {
         float _xOffset2 = pixelWidth * 4.0f;
         float _yOffset2 = (Screen.height - 61.0f) * pixelHeight;// * 9.0f;
 
-        DrawBox(new Rect(_xOffset2, _yOffset2, 202.0f * pixelWidth, 52.0f * pixelHeight), pixelWidth, pixelHeight, Color.black);
+        GLUtils.DrawBox(new Rect(_xOffset2, _yOffset2, 202.0f * pixelWidth, 52.0f * pixelHeight), pixelWidth, pixelHeight, Color.black);
 
         float _xOffset = pixelWidth * 5.0f;
         float _yOffset = (Screen.height - 60.0f) * pixelHeight;// * 10.0f;
-        DrawBox(new Rect(_xOffset, _yOffset, 200.0f * pixelWidth, 50.0f * pixelHeight), pixelWidth, pixelHeight, Color.grey);
+        GLUtils.DrawBox(new Rect(_xOffset, _yOffset, 200.0f * pixelWidth, 50.0f * pixelHeight), pixelWidth, pixelHeight, Color.grey);
 
         GL.End();
         GL.PopMatrix();
@@ -107,7 +82,7 @@ public class MetricRenderer : MonoBehaviour {
 
             Color clr = (ht > (30 * pixelHeight)) ? Color.yellow : Color.red;
             clr = (ht > (45 * pixelHeight)) ? Color.green : clr;
-            DrawLine(new Rect(xOffset, yOffset, 0.0f, 0.0f), pixelWidth, pixelHeight, ht, clr);
+            GLUtils.DrawLine(new Rect(xOffset, yOffset, 0.0f, 0.0f), pixelWidth, pixelHeight, ht, clr);
         }
         
 
