@@ -367,7 +367,7 @@ namespace OpenHardwareMonitor.Hardware.Nvidia {
             UnityEngine.Debug.Log("It loaded??? - " + GetDllName() );
 
 			IntPtr funcaddr = GetProcAddress( m_Handle, "nvapi_QueryInterface" );
-			nvapi_QueryInterface = Marshal.GetDelegateForFunctionPointer(funcaddr,typeof(nvapi_QueryInterfaceDelegate )) as nvapi_QueryInterfaceDelegate;
+			nvapi_QueryInterface = Marshal.GetDelegateForFunctionPointer(funcaddr,typeof( nvapi_QueryInterfaceDelegate )) as nvapi_QueryInterfaceDelegate;
         }
     }
 
@@ -388,18 +388,8 @@ namespace OpenHardwareMonitor.Hardware.Nvidia {
     }
 
     static NVAPI() {
+      SetupNVAPIEntryPoint();
 
-        SetupNVAPIEntryPoint();
-
-            /*
-      DllImportAttribute attribute = new DllImportAttribute(GetDllName());
-      attribute.CallingConvention = CallingConvention.Cdecl;
-      attribute.PreserveSig = true;
-      attribute.EntryPoint = "nvapi_QueryInterface";
-
-      PInvokeDelegateFactory.CreateDelegate(attribute,
-        out nvapi_QueryInterface);
-	*/
       try {
         GetDelegate(0x0150E828, out NvAPI_Initialize);
       } catch (DllNotFoundException) { return; } 
@@ -426,7 +416,6 @@ namespace OpenHardwareMonitor.Hardware.Nvidia {
         available = true;
         
       }
-
     }
 
     public static bool IsAvailable {

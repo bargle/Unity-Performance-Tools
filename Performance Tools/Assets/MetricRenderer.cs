@@ -6,8 +6,6 @@ public class MetricRenderer : MonoBehaviour {
     public Material mat;
 
     Test m_testObject;
-    short[] m_values = new short[200];
-    int m_currentCounter = 0;
 
     CircularBuffer<float> m_valueBuffer;
 
@@ -31,10 +29,6 @@ public class MetricRenderer : MonoBehaviour {
 
     void Update()
     {
-        //m_valueBuffer.Add(m_testObject.m_currentCPUPercentage);
-
-        //m_valueBuffer.Add( Mathf.Clamp( 1.0f / Time.unscaledDeltaTime, 0.0f, 50.0f ) );
-
         m_fpsGraph.AddValue( Mathf.Clamp( ( ( 1.0f / Time.unscaledDeltaTime ) / 60.0f ) * 100.0f, 0.0f, 100.0f ) );
 
         m_cpuGraph.AddValue( (float)m_testObject.m_currentCPUPercentage );
@@ -52,25 +46,22 @@ public class MetricRenderer : MonoBehaviour {
 
     void DrawBackgroundBox( float x, float y )
     {
-
         GL.PushMatrix();
         mat.SetPass(0);
 
         float pixelWidth = 1.0f / Screen.width;
         float pixelHeight = 1.0f / Screen.height;
 
-        float height = pixelHeight * 25.0f; //100 pixels
-
         GL.LoadOrtho();
         GL.Begin(GL.QUADS);
 
         float _xOffset2 = pixelWidth * (x - 1);
-        float _yOffset2 = (Screen.height - (y + 1) ) * pixelHeight;// * 9.0f;
+        float _yOffset2 = (Screen.height - (y + 1) ) * pixelHeight;
 
         GLUtils.DrawBox(new Rect(_xOffset2, _yOffset2, 202.0f * pixelWidth, 27.0f * pixelHeight), pixelWidth, pixelHeight, Color.black);
 
         float _xOffset = pixelWidth * x;
-        float _yOffset = (Screen.height - y ) * pixelHeight;// * 10.0f;
+        float _yOffset = (Screen.height - y ) * pixelHeight;
         GLUtils.DrawBox(new Rect(_xOffset, _yOffset, 200.0f * pixelWidth, 25.0f * pixelHeight), pixelWidth, pixelHeight, Color.grey);
 
         GL.End();
@@ -84,9 +75,9 @@ public class MetricRenderer : MonoBehaviour {
 
         for (int i = 0; i < m_valueBuffer.Count; i++)
         {
-            float ht = m_valueBuffer.GetValue(m_valueBuffer.Count - i) * pixelHeight;//Random.value * pixelHeight *25.0f + (pixelHeight *25);
+            float ht = m_valueBuffer.GetValue(m_valueBuffer.Count - i) * pixelHeight;
             float xOffset = pixelWidth * (((float)i * 1.0f) + x );
-            float yOffset = (Screen.height - y ) * pixelHeight;// * 10.0f;
+            float yOffset = (Screen.height - y ) * pixelHeight;
 
             Color clr = (ht > (30 * pixelHeight)) ? Color.yellow : Color.red;
             clr = (ht > (45 * pixelHeight)) ? Color.green : clr;
@@ -95,30 +86,6 @@ public class MetricRenderer : MonoBehaviour {
     }
 
     void OnPostRender() {
-#if DISABLE
-        DrawBackgroundBox( Screen.width - 245.0f, 115.0f );
-	/*
-        if (!mat) {
-            Debug.LogError("Please Assign a material on the inspector");
-            return;
-        }
-		*/
-        GL.PushMatrix();
-        mat.SetPass(0);
-
-
-
-        //float height = pixelHeight * 50.0f; //100 pixels
-
-        GL.LoadOrtho();
-        GL.Begin(GL.QUADS);
-
-        DrawData(Screen.width - 245.0f, 115.0f );
-
-        GL.End();
-        GL.PopMatrix();
-        */
-#endif
         float xOffset = 220.0f;
 
         m_fpsGraph.Render(new Rect(Screen.width - xOffset, 70.0f, 200.0f, 20.0f));
