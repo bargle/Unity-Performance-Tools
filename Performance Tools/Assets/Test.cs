@@ -8,11 +8,10 @@ using OpenHardwareMonitor.Hardware.Nvidia;
 
 public class Test : MonoBehaviour {
 
+    public int m_calcs = 0;
+
     public Text m_myText;
 
-    List<PerformanceCounter> pc;
-    List<CounterSample> samples;
-    List<Double> m_values = new List<Double>();
     float updateInterval = 1.0f;
     float lastUpdate = 0.0f;
     float timeStep = 1.0f;
@@ -23,6 +22,7 @@ public class Test : MonoBehaviour {
 	long m_lastGCCount = long.MaxValue;
 	int m_lastGCFrame = 0;
 	int m_gcIterations = 0;
+    public bool m_gcIncrementedThisFrame = false;
 
     // Use this for initialization
     void Start () {
@@ -31,36 +31,6 @@ public class Test : MonoBehaviour {
         m_myText.text = "test";
 
         cpuUsage.GetUsage();
-
-        pc = new List<PerformanceCounter>();
-
-        //for ( int i  = 0; i < SystemInfo.processorCount; ++i )
-
-        //pc.Add(new PerformanceCounter("Processor", "% Processor Time", Process.GetCurrentProcess().ProcessName ) ); //; "_Total"));
-
-        //pc.Add(new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName));
-        //pc.Add(new PerformanceCounter("Processor Information", "% Idle Time", "_Total"));
-
-        for (int i = 0; i < SystemInfo.processorCount; ++i)
-        {
-            pc.Add(new PerformanceCounter("Processor", "% User Time", i.ToString() ) );
-            //pc.Add(new PerformanceCounter("Processor", "% Idle Time", i.ToString()));
-        }
-
-        samples = new List<CounterSample>();
-
-        //System.Threading.Thread.Sleep(1000);
-
-        for (int i = 0; i < pc.Count; ++i)
-        {
-            //System.Threading.Thread.Sleep(500);
-
-            pc[i].NextValue();
-
-            samples.Add( pc[i].NextSample() );
-            m_values.Add(0.0);
-        }
-
 
         if ( NVAPI.IsAvailable )
         {
@@ -76,13 +46,22 @@ public class Test : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		//GC updates
-		long currGCCount = System.GC.GetTotalMemory( false );
+        for ( int i = 0; i < m_calcs; i++ )
+        {
+            Mathf.Sqrt(Time.realtimeSinceStartup);
+        }
+
+        //GC updates
+        long currGCCount = System.GC.GetTotalMemory( false );
 		if ( currGCCount < m_lastGCCount )
 		{
-			m_lastGCFrame = Time.frameCount;
+            m_gcIncrementedThisFrame = true;
+            m_lastGCFrame = Time.frameCount;
 			m_gcIterations++;
-		}
+		} else
+        {
+            m_gcIncrementedThisFrame = false;
+        }
 		m_lastGCCount = currGCCount;
 
         if ( ( Time.realtimeSinceStartup - lastUpdate ) < updateInterval )
@@ -94,27 +73,6 @@ public class Test : MonoBehaviour {
         timeStep = Time.unscaledDeltaTime;
 
         lastUpdate = Time.realtimeSinceStartup;
-
-        //System.Threading.Thread.Sleep(1000);
-
-        for ( int i = 0; i < pc.Count; i++ )
-        {
-            CounterSample s1 = samples[i];
-            CounterSample s2 = pc[i].NextSample();
-
-            //m_values[i] = pc[i].NextValue();
-            //m_values[i] = Calculate( s1, s2 ); //CounterSample.Calculate( s1, s2 );
-            //m_values[i] = CounterSample.Calculate( s1, s2 );
-
-            m_values[i] = (float)(((s2.TimeStamp100nSec - s1.TimeStamp100nSec) ) / 10000000 );
-            //m_values[i] = (float)( (s2.TimeStamp - s1.TimeStamp) / s2.SystemFrequency );
-
-            //m_values[i] = (float)((s2.TimeStamp100nSec - s1.TimeStamp100nSec) * ( Time.unscaledDeltaTime / 100000.0f ) );
-
-            //m_values[i] = (float)(s2.TimeStamp - s1.TimeStamp);
-
-            samples[i] = pc[i].NextSample();
-        }
 
         m_currentCPUPercentage = cpuUsage.GetUsage();
 
@@ -164,8 +122,6 @@ public class Test : MonoBehaviour {
 						}
 					}
 				}
-
-
 			}
 			else 
 			{ 
@@ -176,7 +132,7 @@ public class Test : MonoBehaviour {
 
     void DrawGUI( Rect rect )
     {
-        GUI.Box( rect, ""); GUI.Box(rect, "");
+        GUI.Box( rect, "");// GUI.Box(rect, "");
 
         float yOffset = 5.0f;
 
@@ -187,15 +143,12 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), (timeStep * 100.0f).ToString("0.00") + "ms");
         yOffset += 20.0f;
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Time : " + Time.realtimeSinceStartup.ToString( "0.00" ));
-        yOffset += 20.0f;
-
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Frame : " + Time.frameCount.ToString() );
-        yOffset += 20.0f;
+        yOffset += 50.0f;
+
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Sys Mem : " + SystemInfo.systemMemorySize.ToString() );
         yOffset += 20.0f;
-	
 
 		long mb = System.GC.GetTotalMemory( false ) / (1024);
 
@@ -204,18 +157,16 @@ public class Test : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Alloc : " + fmb.ToString("N2") + "MB" );
 		yOffset += 20.0f;
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Frame : " + m_lastGCFrame.ToString() );
-        yOffset += 20.0f;
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Frame : " + m_lastGCFrame.ToString() + " Iter : " + m_gcIterations.ToString());
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "GC Iter : " + m_gcIterations.ToString() );
-        yOffset += 40.0f;
+        yOffset += 50.0f;
 
         //Vid Info
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), SystemInfo.graphicsDeviceVersion.ToString() ) ;
         yOffset += 20.0f;
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), SystemInfo.graphicsDeviceVendor );
         yOffset += 20.0f;
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), SystemInfo.graphicsDeviceName );
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), GetGPUTitle() );
         yOffset += 20.0f;
         GUI.Label( new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "VRAM " + SystemInfo.graphicsMemorySize.ToString() + " MB" );
         yOffset += 20.0f;
@@ -236,26 +187,11 @@ public class Test : MonoBehaviour {
 
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Total CPU Time: " + m_currentCPUPercentage + "%" );
         yOffset += 20.0f;
-
-		/*
-        for (int i = 0; i < m_values.Count; i++)
-        {
-            GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "[CORE" + i + "] " + m_values[i].ToString("0.0000") + " (" + ( 1.0f / (m_values[i] * 0.01f) ).ToString("0.00") + ")");
-            yOffset += 20.0f;
-        }
-		*/
-
-        /*
-        for( int i = 0; i < pc.Count; i++ )
-        {
-            GUI.Label(new Rect(5.0f, yOffset + 5.0f + (i * 20), 250.0f, 25.0f), pc[i].CounterName );
-        }
-        */
     }
 
     void OnGUI()
     {
-        float width = 250.0f;
+        float width = 225.0f;
         DrawGUI(new Rect( Screen.width - width, 0.0f, width, Screen.height));
     }
 
@@ -269,8 +205,13 @@ public class Test : MonoBehaviour {
 
     string GetCPUTitle()
     {
-        string[] tokens = SystemInfo.processorType.Replace("(TM)", "").Replace("(R)", "").Split(new char[] { '@' });
+        string[] tokens = SystemInfo.processorType.Replace("CPU", "").Replace("(TM)", "").Replace("(R)", "").Split(new char[] { '@' });
 
         return tokens[0];
+    }
+
+    string GetGPUTitle()
+    {
+        return SystemInfo.graphicsDeviceName.Replace("(TM)", "").Replace("(R)", "");
     }
 }
