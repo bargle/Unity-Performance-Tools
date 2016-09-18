@@ -11,6 +11,7 @@ public class MetricRenderer : MonoBehaviour {
 
     Graph m_fpsGraph;
     Graph m_cpuGraph;
+	Graph m_gpuGraph;
     Graph m_gcGraph;
 
     void Start()
@@ -24,6 +25,7 @@ public class MetricRenderer : MonoBehaviour {
         m_fpsGraph = new Graph(200);
         m_fpsGraph.SetColors( Color.red, Color.yellow, Color.green );
         m_cpuGraph = new Graph(200);
+		m_gpuGraph = new Graph(200);
         m_gcGraph = new Graph(200);
     }
 
@@ -32,6 +34,8 @@ public class MetricRenderer : MonoBehaviour {
         m_fpsGraph.AddValue( Mathf.Clamp( ( ( 1.0f / Time.unscaledDeltaTime ) / 60.0f ) * 100.0f, 0.0f, 100.0f ) );
 
         m_cpuGraph.AddValue( (float)m_testObject.m_currentCPUPercentage );
+
+        m_gpuGraph.AddValue( (float)m_testObject.m_currentGPUPercentage );
 
         if (m_testObject.m_gcIncrementedThisFrame)
         {
@@ -91,6 +95,8 @@ public class MetricRenderer : MonoBehaviour {
         m_fpsGraph.Render(new Rect(Screen.width - xOffset, 70.0f, 200.0f, 20.0f));
 
         m_gcGraph.Render(new Rect(Screen.width - xOffset, 160.0f, 200.0f, 20.0f));
+
+		m_gpuGraph.Render(new Rect(Screen.width - xOffset, 285.0f, 200.0f, 20.0f));
 
         m_cpuGraph.Render(new Rect(Screen.width - xOffset, 390.0f, 200.0f, 20.0f));
     }

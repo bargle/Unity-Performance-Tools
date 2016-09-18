@@ -15,7 +15,7 @@ public class Test : MonoBehaviour {
     float timeStep = 1.0f;
     CpuUsageCs.CpuUsage cpuUsage = new CpuUsageCs.CpuUsage();
     public short m_currentCPUPercentage = 0;
-	short m_currentGPUPercentage = 0;
+	public short m_currentGPUPercentage = 0;
 
 	long m_lastGCCount = long.MaxValue;
 	int m_lastGCFrame = 0;
@@ -90,7 +90,7 @@ public class Test : MonoBehaviour {
 
         if ((Time.realtimeSinceStartup - lastUpdate) < updateInterval)
         {
-            return;
+           // return;
         }
 
         lastUpdate = Time.realtimeSinceStartup;
@@ -179,7 +179,7 @@ public class Test : MonoBehaviour {
         yOffset += 50.0f;
 
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Sys Mem : " + SystemInfo.systemMemorySize.ToString() );
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Sys Mem : " + Mathf.CeilToInt( (float)SystemInfo.systemMemorySize / 1024.0f ).ToString() + "GB" );
         yOffset += 20.0f;
 
 		long mb = System.GC.GetTotalMemory( false ) / (1024);
