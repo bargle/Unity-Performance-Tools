@@ -364,8 +364,6 @@ namespace OpenHardwareMonitor.Hardware.Nvidia {
              throw new Exception(string.Format("Failed to load library (ErrorCode: {0})",errorCode));
         } else
         {
-            UnityEngine.Debug.Log("It loaded??? - " + GetDllName() );
-
 			IntPtr funcaddr = GetProcAddress( m_Handle, "nvapi_QueryInterface" );
 			nvapi_QueryInterface = Marshal.GetDelegateForFunctionPointer(funcaddr,typeof( nvapi_QueryInterfaceDelegate )) as nvapi_QueryInterfaceDelegate;
         }

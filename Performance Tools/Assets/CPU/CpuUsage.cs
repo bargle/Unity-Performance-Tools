@@ -1,6 +1,4 @@
-﻿using System;using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Runtime.InteropServices;
 using ComTypes = System.Runtime.InteropServices.ComTypes;
 using System.Threading;
@@ -83,9 +81,7 @@ namespace CpuUsageCs
                 cpuCopy = _cpuUsage;
             }
             Interlocked.Decrement(ref _runCount);
-
             return cpuCopy;
-                
         }
 
         private UInt64 SubtractTimes(ComTypes.FILETIME a, ComTypes.FILETIME b)
