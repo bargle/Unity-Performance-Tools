@@ -5,6 +5,7 @@ public class Graph {
     CircularBuffer<float> m_valueBuffer;
 
     Color[] m_colors = new Color[] { Color.green, Color.yellow, Color.red };
+	float[] m_ranges = new float[] { 0.0f, 30.0f, 45.0f };
 
     public Graph( int valueCount )
     {
@@ -23,6 +24,13 @@ public class Graph {
         m_colors[0] = low;
         m_colors[1] = med;
         m_colors[2] = high;
+    }
+
+    public void SetRanges( float low, float med, float high )
+    {
+        m_ranges[0] = low;
+        m_ranges[1] = med;
+        m_ranges[2] = high;
     }
 
     public void AddValue( float val )
@@ -49,8 +57,8 @@ public class Graph {
             float xOffset = ( ( (float)i * pixelWidth) + ( rect.x * pixelWidth ) ) ;
             float yOffset = ((Screen.height - rect.height) - rect.y) * pixelHeight;
 
-            Color clr = ( perc > 30 ) ? m_colors[1] : m_colors[0];
-            clr = (perc > 45) ? m_colors[2] : clr;
+            Color clr = ( perc > m_ranges[1] ) ? m_colors[1] : m_colors[0];
+            clr = (perc > m_ranges[2]) ? m_colors[2] : clr;
             GLUtils.DrawLine(new Rect(xOffset , yOffset, 0.0f, 0.0f), pixelWidth, pixelHeight, ( (perc / 100.0f) * rect.height) * pixelHeight, clr);
         }
 

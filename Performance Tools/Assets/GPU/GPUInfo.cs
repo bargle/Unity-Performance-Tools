@@ -35,15 +35,9 @@ public class GPUInfo
             }
 			else
             {
-                //NVAPI.NvAPI_GetInterfaceVersionString( out m_driverVersion );
-
-                //m_driverVersion
-
                 NvStatus status = NVAPI.NvAPI_EnumPhysicalGPUs(m_handles, out count);
                 if (status == NvStatus.OK)
                 {
-                    //UnityEngine.Debug.Log("GPU Count: " + count);
-
                     for (int i = 0; i < count; i++)
                     {
                         NvPStates states = new NvPStates();
@@ -51,24 +45,7 @@ public class GPUInfo
                         states.PStates = new NvPState[NVAPI.MAX_PSTATES_PER_GPU];
                         if ( NVAPI.NvAPI_GPU_GetPStates != null && NVAPI.NvAPI_GPU_GetPStates(m_handles[i], ref states) == NvStatus.OK )
                         {
-                            //GPU Core load perc
-							int core_count = 0;
-							int core_usage = 0;
-							for( int core = 0; core < NVAPI.MAX_PSTATES_PER_GPU; core++ )
-							{
-								if ( states.PStates[ core ].Present )
-								{ 
-									core_usage += states.PStates[ core ].Percentage;
-									core_count++;
-								}
-							}
-							
-							//m_usagePercentage = (short)states.PStates[0].Percentage;
-
-							if ( core_count > 0 )
-							{
-								m_usagePercentage = core_usage / core_count;
-							}
+							m_usagePercentage = (short)states.PStates[0].Percentage;
                         }
                         else
                         {

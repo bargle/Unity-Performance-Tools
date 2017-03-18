@@ -12,10 +12,14 @@ public class MetricRenderer : MonoBehaviour {
 	Graph m_gpuGraph;
 	Graph m_cpuGraph;
 
+	Graph[] m_cpuGraphEx;
+
 	FrameInfo m_frameInfo;
 	MemoryInfo m_memoryInfo;
 	GPUInfo m_gpuInfo;
 	CPUInfo m_cpuInfo;
+
+	CPUInfoEx m_cpuInfoEx;
 
 	float m_maxGCMemory = 0.0f;
 	float m_minGCMemory = float.MaxValue;
@@ -28,7 +32,9 @@ public class MetricRenderer : MonoBehaviour {
         m_fpsGraph = new Graph(200);
         m_fpsGraph.SetColors( Color.red, Color.yellow, Color.green );
         m_cpuGraph = new Graph(200);
+		m_cpuGraph.SetRanges( 0.0f, 33.0f, 66.0f );
 		m_gpuGraph = new Graph(200);
+		m_gpuGraph.SetRanges( 0.0f, 33.0f, 66.0f );
         m_gcGraph = new Graph(200);
 		m_gcGraph.SetColors( Color.yellow, Color.yellow, Color.yellow );
 
@@ -36,11 +42,20 @@ public class MetricRenderer : MonoBehaviour {
 		m_frameInfo = new FrameInfo();
 		m_memoryInfo = new MemoryInfo();
 		m_gpuInfo = new GPUInfo();
+
+		m_cpuInfoEx = new CPUInfoEx();
+		m_cpuGraphEx = new Graph[ m_cpuInfoEx.NumCores ];
+		for( int i = 0; i < m_cpuGraphEx.Length; i++ )
+		{
+			m_cpuGraphEx[i] = new Graph( 150 );
+			m_cpuGraphEx[i].SetRanges( 0.0f, 33.0f, 66.0f );
+		}
     }
 
     void Update()
     {
 		//Update Info
+		m_frameInfo.Update();
 		m_memoryInfo.Update();
 		m_gpuInfo.Update();
 		m_cpuInfo.Update();
@@ -50,6 +65,12 @@ public class MetricRenderer : MonoBehaviour {
 		m_gcGraph.AddValue( GetAdjustedGCValue() );
 		m_gpuGraph.AddValue( (float)m_gpuInfo.GPUUsage );
 		m_cpuGraph.AddValue( m_cpuInfo.CPUUsage );
+
+		m_cpuInfoEx.Update();
+		for( int i = 0; i < m_cpuGraphEx.Length; i++ )
+		{
+			m_cpuGraphEx[i].AddValue( m_cpuInfoEx.coreLoad[i] );
+		}
     }
 
 	float GetAdjustedGCValue()
@@ -74,8 +95,7 @@ public class MetricRenderer : MonoBehaviour {
 			return adjustedValue * m_gcMemoryGraphScale;
 		}
 
-		return currentGCMemory;
-		
+		return Mathf.Clamp( currentGCMemory, 0.0f, 100.0f );
 	}
 
 	void OnGUI()
@@ -93,10 +113,10 @@ public class MetricRenderer : MonoBehaviour {
 		//
 		//Frame info
 		//
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), m_frameInfo.FrameRate.ToString("n2") + " FPS");
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), m_frameInfo.CachedFrameRate.ToString("n2") + " [" + m_frameInfo.AvgFrameRate.ToString("n0") + "]" + " FPS" );
         yOffset += 20.0f;
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), (m_frameInfo.FrameTime * 100.0f).ToString("0.00") + "ms");
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), (m_frameInfo.CachedFrameTime * 1000.0f).ToString("n2") + "ms");
         yOffset += 20.0f;
      
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Frame : " + m_frameInfo.FrameCount.ToString() );
@@ -139,8 +159,17 @@ public class MetricRenderer : MonoBehaviour {
         GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "CPU Speed : " + m_cpuInfo.CPUFrequency.ToString() + " MHZ" );
         yOffset += 20.0f;
 
-        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Total CPU Time: " + m_cpuInfo.CPUUsage + "%" );
-        yOffset += 20.0f;
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "Process CPU Load: " + m_cpuInfo.CPUUsage + "%" );
+        yOffset += 50.0f;
+
+        GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "System CPU Load" );
+		yOffset += 25.0f;
+
+		for( int i = 0; i < m_cpuInfoEx.NumCores; i++ )
+		{
+			GUI.Label(new Rect(rect.x + 5.0f, rect.y + yOffset, 250.0f, 25.0f), "CPU " + i );
+			yOffset += 25.0f;
+		}
     }
 
     void DrawBackgroundBox( float x, float y )
@@ -173,5 +202,11 @@ public class MetricRenderer : MonoBehaviour {
         m_gcGraph.Render(new Rect(Screen.width - xOffset, 140.0f, 200.0f, 20.0f));
 		m_gpuGraph.Render(new Rect(Screen.width - xOffset, 250.0f, 200.0f, 20.0f));
         m_cpuGraph.Render(new Rect(Screen.width - xOffset, 360.0f, 200.0f, 20.0f));
+
+		for( int i = 0; i < m_cpuGraphEx.Length; i++ )
+		{
+			float xOffsetEx = 160.0f;
+			m_cpuGraphEx[i].Render( new Rect(Screen.width - xOffsetEx, 410.0f + (25.0f * i), 150.0f, 20.0f) );
+		}
     }
 }
